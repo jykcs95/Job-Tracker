@@ -30,6 +30,11 @@
 		<java.version>25</java.version>
 	</properties>
 	<dependencies>
+		<!-- This library adds the missing Jackson components needed to serialize outbound Kafka events into JSON -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
 		<!-- This library adds support for connecting to and interacting with Redis -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>

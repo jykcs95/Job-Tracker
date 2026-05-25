@@ -1,4 +1,4 @@
-package com.tracker.analytics_service;
+package com.tracker.analytics_service.model;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -15,7 +15,7 @@ public class DailyStateAggregate {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    // The specific day we are logging total system counts for (e.g., 2026-05-24).
+    // THe specific day we are logging total system counts for
     @Column(nullable = false)
     private LocalDate logDate;
 
