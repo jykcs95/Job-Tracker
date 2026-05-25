@@ -1,4 +1,4 @@
-# 📊 Distributed Full-Stack Job Application Kanban Tracker
+# 📊 Job Application Kanban Tracker
 
 A highly scalable, production-grade distributed system designed to manage job hunt workflows. This application utilizes an enterprise-grade microservice architecture featuring **Event-Driven Streaming**, **In-Memory Caching**, and **Decoupled Analytics Aggregations**. 
 
