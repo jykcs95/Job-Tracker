@@ -32,6 +32,10 @@ public class JobApplication {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    // Optional column to store the destination URL of the listing
+    @Column(name = "job_url", length = 512)
+    private String jobUrl;
+
     // Automatically sets timestamps when a record is first saved
     @PrePersist
     protected void onCreate() {

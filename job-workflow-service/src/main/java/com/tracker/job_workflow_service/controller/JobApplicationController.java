@@ -42,6 +42,7 @@ public class JobApplicationController {
         applicationEntity.setRoleTitle(dto.getRoleTitle());
         applicationEntity.setState(dto.getState());
         applicationEntity.setSalaryRange(dto.getSalaryRange());
+        applicationEntity.setJobUrl(dto.getJobUrl());
 
         // Forward our safely constructed database entity down to our service brain
         // layer
@@ -76,5 +77,20 @@ public class JobApplicationController {
 
         JobApplication updated = service.updateApplicationState(id, newState, userId);
         return ResponseEntity.ok(updated);
+    }
+
+    /**
+     * Endpoint 4: Delete a Job Application Tracker Item
+     * URL: DELETE http://localhost:8080/api/jobs/{id}
+     */
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteJob(
+            @PathVariable Long id,
+            @RequestHeader("X-User-Id") String userId) {
+
+        service.deleteApplication(id, userId);
+
+        // Return HTTP 204 No Content confirming successful deletion
+        return ResponseEntity.noContent().build();
     }
 }

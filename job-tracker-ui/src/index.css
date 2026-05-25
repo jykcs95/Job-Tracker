@@ -1,1 +1,8 @@
 @import "tailwindcss";
+/* Force the root HTML layer and body to be dark slate and occupy the full screen */
+html, body {
+  background-color: #111827; /* Matches Tailwind's 'bg-gray-900' precisely */
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}

@@ -12,4 +12,5 @@ public class JobApplicationDTO {
     private String roleTitle;
     private ApplicationState state;
     private String salaryRange;
+    private String jobUrl;
 }

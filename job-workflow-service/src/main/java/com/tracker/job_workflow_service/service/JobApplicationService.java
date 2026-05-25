@@ -122,4 +122,34 @@ public class JobApplicationService {
 
         return updatedApplication;
     }
+
+    /**
+     * Requirement 4: Delete a job application and notify the message bus.
+     */
+    public void deleteApplication(Long id, String userId) {
+        log.info("Attempting to delete job application ID: {} for user: {}", id, userId);
+
+        // Step 1: Find the application to know its current state before it's gone
+        JobApplication application = repository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Job Application not found with ID: " + id));
+
+        ApplicationState oldState = application.getState();
+
+        // Step 2: Delete permanently from MySQL
+        repository.deleteById(id);
+
+        // Step 3: Evict the stale Redis cache key
+        redisTemplate.delete(getCacheKey(userId));
+
+        // Step 4: Broadcast deletion event to Kafka
+        // Setting newState to 'null' signals the Analytics Engine to decrement the
+        // count of the oldState
+        JobStatusEvent event = new JobStatusEvent(
+                id,
+                application.getCompanyName(),
+                oldState,
+                null);
+        eventProducer.sendStatusChangeEvent(event);
+        log.info("Job application ID: {} deleted successfully.", id);
+    }
 }
