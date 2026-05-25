@@ -102,7 +102,36 @@ public class JobEventConsumer {
         log.info("Metrics calculation synchronized. State: {} | Today's Updated Total Count: {}",
                 state, aggregate.getTotalCount());
 
-        java.util.List<DailyStateAggregate> freshMetrics = repository.findAll();
-        sseManager.broadcastUpdate(freshMetrics);
+        // Broadcast only today's aggregates and ensure all three states are present
+        java.time.LocalDate today = java.time.LocalDate.now();
+        java.util.List<DailyStateAggregate> todays = repository.findByLogDate(today);
+
+        // Ensure presence of all states
+        java.util.Map<com.tracker.analytics_service.model.ApplicationState, DailyStateAggregate> map = new java.util.EnumMap<>(
+                com.tracker.analytics_service.model.ApplicationState.class);
+        for (com.tracker.analytics_service.model.ApplicationState s : com.tracker.analytics_service.model.ApplicationState
+                .values()) {
+            map.put(s, null);
+        }
+        for (DailyStateAggregate d : todays) {
+            map.put(d.getState(), d);
+        }
+
+        java.util.List<DailyStateAggregate> toBroadcast = new java.util.ArrayList<>();
+        for (com.tracker.analytics_service.model.ApplicationState s : com.tracker.analytics_service.model.ApplicationState
+                .values()) {
+            DailyStateAggregate d = map.get(s);
+            if (d == null) {
+                DailyStateAggregate empty = new DailyStateAggregate();
+                empty.setLogDate(today);
+                empty.setState(s);
+                empty.setTotalCount(0L);
+                toBroadcast.add(empty);
+            } else {
+                toBroadcast.add(d);
+            }
+        }
+
+        sseManager.broadcastUpdate(toBroadcast);
     }
 }

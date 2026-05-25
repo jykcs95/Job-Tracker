@@ -8,6 +8,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import com.tracker.analytics_service.model.ApplicationState;
+import com.tracker.analytics_service.model.DailyStateAggregate;
 
 // '@RestController' opens up web endpoints that automatically return clean JSON data.
 // '@CrossOrigin("*")' prevents CORS block errors when our React frontend reaches out.
@@ -32,9 +36,24 @@ public class AnalyticsController {
      */
     @GetMapping("/daily")
     public ResponseEntity<List<DailyStateAggregate>> getDailyMetrics() {
-        // Fetch all aggregated counting rows sitting inside MySQL
-        List<DailyStateAggregate> metrics = repository.findAll();
-        return ResponseEntity.ok(metrics);
+        // Fetch aggregated rows for today only and ensure we return the three expected
+        // states
+        LocalDate today = LocalDate.now();
+        List<DailyStateAggregate> rows = repository.findByLogDate(today);
+
+        List<DailyStateAggregate> result = new ArrayList<>();
+        for (ApplicationState s : ApplicationState.values()) {
+            DailyStateAggregate match = rows.stream().filter(r -> r.getState() == s).findFirst().orElseGet(() -> {
+                DailyStateAggregate empty = new DailyStateAggregate();
+                empty.setLogDate(today);
+                empty.setState(s);
+                empty.setTotalCount(0L);
+                return empty;
+            });
+            result.add(match);
+        }
+
+        return ResponseEntity.ok(result);
     }
 
     /**

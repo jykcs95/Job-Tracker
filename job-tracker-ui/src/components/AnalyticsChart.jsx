@@ -1,16 +1,44 @@
 import React, { useState, useEffect } from 'react';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function AnalyticsChart() {
     const [metrics, setMetrics] = useState([
-        { name: 'APPLIED', count: 0 },
-        { name: 'INTERVIEWING', count: 0 },
-        { name: 'DONE', count: 0 }
+        { name: 'APPLIED', count: 0, fill: '#60a5fa' },
+        { name: 'INTERVIEWING', count: 0, fill: '#fbbf24' },
+        { name: 'DONE', count: 0, fill: '#34d399' }
     ]);
     const [toast, setToast] = useState({ show: false, message: '' });
 
     const INITIAL_API_URL = 'http://localhost:8081/api/analytics/daily';
     const STREAM_API_URL = 'http://localhost:8081/api/analytics/stream';
+
+    const normalizeMetrics = (rawData) => {
+        const empty = [
+            { name: 'APPLIED', count: 0, fill: getBarColor('APPLIED') },
+            { name: 'INTERVIEWING', count: 0, fill: getBarColor('INTERVIEWING') },
+            { name: 'DONE', count: 0, fill: getBarColor('DONE') }
+        ];
+        if (!rawData || rawData.length === 0) return empty;
+
+        // Prefer rows for today's date if available, otherwise use latest available
+        const today = new Date().toISOString().split('T')[0];
+        const todays = rawData.filter(d => d.logDate && d.logDate.startsWith(today));
+        const rows = todays.length > 0 ? todays : rawData;
+
+        // Aggregate counts by state to guard against multiple rows
+        const byState = rows.reduce((acc, item) => {
+            const state = item.state;
+            const count = Number(item.totalCount) || 0;
+            acc[state] = (acc[state] || 0) + count;
+            return acc;
+        }, {});
+
+        return [
+            { name: 'APPLIED', count: byState['APPLIED'] || 0, fill: getBarColor('APPLIED') },
+            { name: 'INTERVIEWING', count: byState['INTERVIEWING'] || 0, fill: getBarColor('INTERVIEWING') },
+            { name: 'DONE', count: byState['DONE'] || 0, fill: getBarColor('DONE') }
+        ];
+    };
 
     useEffect(() => {
         // 1. Fetch initial values on page mount layout
@@ -18,7 +46,7 @@ export default function AnalyticsChart() {
         .then(res => res.json())
         .then(data => {
             if (data && data.length > 0) {
-            setMetrics(data.map(item => ({ name: item.state, count: item.totalCount })));
+                setMetrics(normalizeMetrics(data));
             }
         })
         .catch(err => console.error("Initial metrics fetch failed:", err));
@@ -27,15 +55,15 @@ export default function AnalyticsChart() {
         const eventSource = new EventSource(STREAM_API_URL);
 
         eventSource.addEventListener('telemetry-update', (event) => {
-        const freshData = JSON.parse(event.data);
-        console.log(">>> SSE Push Event Caught Live:", freshData);
-        
-        // Update our chart states instantly
-        setMetrics(freshData.map(item => ({ name: item.state, count: item.totalCount })));
+            const freshData = JSON.parse(event.data);
+            console.log(">>> SSE Push Event Caught Live:", freshData);
 
-        // Trigger our beautiful live Toast Notification layout alert pop-up panel
-        setToast({ show: true, message: '⚡ SSE Push Event Synchronized!' });
-        setTimeout(() => setToast({ show: false, message: '' }), 3500);
+            // Normalize and update our chart states instantly
+            setMetrics(normalizeMetrics(freshData));
+
+            // Trigger our live toast notification
+            setToast({ show: true, message: '⚡ SSE Push Event Synchronized!' });
+            setTimeout(() => setToast({ show: false, message: '' }), 3500);
         });
 
         // Clean up our streaming wire when the user closes the website
@@ -61,8 +89,7 @@ export default function AnalyticsChart() {
 
         <div className="mb-4">
             <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            Real-Time Data Telemetry Engine
+                <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />{' '}Real-Time Data Telemetry Engine
             </h2>
             <p className="text-xs text-gray-500 mt-0.5">Asynchronous metrics pushed instantly via Server-Sent Events (SSE)</p>
         </div>
@@ -76,11 +103,7 @@ export default function AnalyticsChart() {
                 contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                 />
-                <Bar dataKey="count" radius={5} maxBarSize={60}>
-                {metrics.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={getBarColor(entry.name)} />
-                ))}
-                </Bar>
+                <Bar dataKey="count" radius={5} maxBarSize={60} />
             </BarChart>
             </ResponsiveContainer>
         </div>

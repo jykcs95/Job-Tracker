@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.time.LocalDate;
 import java.util.Optional;
+import java.util.List;
 
 // '@Repository' registers this interface as a data-access component in Spring's memory ecosystem.
 // We extend JpaRepository, pointing to our reporting entity and using 'Long' as its primary key ID data type.
@@ -30,4 +31,7 @@ public interface DailyStateAggregateRepository extends JpaRepository<DailyStateA
      * without throwing a dangerous null-pointer crash.
      */
     Optional<DailyStateAggregate> findByLogDateAndState(LocalDate logDate, ApplicationState state);
+
+    // Find all aggregate rows for a specific date
+    List<DailyStateAggregate> findByLogDate(LocalDate logDate);
 }
