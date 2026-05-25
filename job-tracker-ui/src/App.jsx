@@ -3,9 +3,9 @@ import { useJobData } from './hooks/useJobData';
 import Header from './components/Header';
 import AddJobForm from './components/AddJobForm';
 import KanbanBoard from './components/KanbanBoard';
+import AnalyticsChart from './components/AnalyticsChart'; // Verify import is present
 
 function App() {
-  // Pull all state memory and operations directly from our backend data hook!
   const {
     jobs,
     formData,
@@ -28,11 +28,21 @@ function App() {
           onSubmit={handleCreateJob} 
         />
         
-        <KanbanBoard 
-          jobs={jobs} 
-          onMove={handleMoveCard} 
-          onDelete={handleDeleteCard} 
-        />
+        {/* SECTION 2: Interactive Columns Container */}
+        {/* FIX: Ensure this section tag opens cleanly here */}
+        <section className="lg:col-span-3 flex flex-col">
+          
+          {/* Mount our live telemetry data graph stream */}
+          <AnalyticsChart />
+          
+          {/* Mount our visual Kanban tracking columns */}
+          <KanbanBoard 
+            jobs={jobs} 
+            onMove={handleMoveCard} 
+            onDelete={handleDeleteCard} 
+          />
+          
+        </section> {/* FIX: Ensure this structural closing tag corresponds perfectly! */}
       </main>
     </div>
   );

@@ -26,7 +26,7 @@ public class JobStatusEvent {
      * securely hydrate
      * fields directly from incoming Kafka JSON streams.
      */
-    private JobStatusEvent() {
+    public JobStatusEvent() {
         // Safe, blank constructor accessible ONLY via background system reflection
         // frameworks
     }

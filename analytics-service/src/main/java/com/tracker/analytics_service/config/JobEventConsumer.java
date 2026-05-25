@@ -8,6 +8,8 @@ import com.tracker.analytics_service.repository.DailyStateAggregateRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaUtils;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Service;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
@@ -33,12 +35,28 @@ public class JobEventConsumer {
      * '@Transactional' ensures that both database updates succeed together or fail
      * together.
      */
-    @KafkaListener(topics = "job-status-events", groupId = "analytics-group")
+    @KafkaListener(topics = "job-status-events", groupId = "analytics-group-vfinal", containerFactory = "kafkaListenerContainerFactory")
     @Transactional
-    public void consumeStatusChangeEvent(JobStatusEvent event) {
+    public void consumeStatusChangeEvent(
+            JobStatusEvent event,
+            @Header(name = KafkaUtils.VALUE_DESERIALIZER_EXCEPTION_HEADER, required = false) Throwable exception) {
+
+        // SAFE GATEWAY: If an exception object exists, Kafka caught a corrupted
+        // historical message!
+        if (exception != null) {
+            log.error(
+                    "⚠️ [KAFKA TELEMETRY LAYER] Caught a corrupted historical message on the conveyor belt. Skipping poison pill message safely to clear the queue loop. Cause: {}",
+                    exception.getMessage(), exception);
+            return; // Aborts processing this message immediately and lets Kafka move forward!
+        }
+
+        if (event == null) {
+            log.warn("Received a null JobStatusEvent from Kafka, skipping processing.");
+            return;
+        }
+
         log.info("Received background event from Kafka! Processing Job ID: {} changing states.",
                 event.getApplicationId());
-
         LocalDate today = LocalDate.now();
 
         // PART 1: Decrement the calculation counter for the OLD state (if there was

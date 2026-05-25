@@ -30,6 +30,11 @@
 		<java.version>25</java.version>
 	</properties>
 	<dependencies>
+		<!-- Adds web capabilities so the analytics worker can serve REST API endpoints -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
 		<!-- This library adds the Jackson Data Engine needed to translate raw Kafka JSON payloads into Java Objects -->
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>

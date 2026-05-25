@@ -59,6 +59,14 @@ public class JobApplicationService {
         // Step 2: Clear the user's out-of-date Redis cache board
         redisTemplate.delete(getCacheKey(userId));
 
+        // Step 3: Broadcast an initial creation event for analytics tracking
+        JobStatusEvent event = new JobStatusEvent(
+                savedApplication.getId(),
+                savedApplication.getCompanyName(),
+                null,
+                savedApplication.getState());
+        eventProducer.sendStatusChangeEvent(event);
+
         return savedApplication;
     }
 
