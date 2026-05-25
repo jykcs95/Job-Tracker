@@ -59,6 +59,15 @@ public class JobApplicationService {
         // Step 2: Clear the user's out-of-date Redis cache board
         redisTemplate.delete(getCacheKey(userId));
 
+        // Step 3: Publish a Kafka event for new job creations so analytics chart
+        // receives an immediate update for the APPLIED state.
+        JobStatusEvent event = new JobStatusEvent(
+                savedApplication.getId(),
+                savedApplication.getCompanyName(),
+                null,
+                savedApplication.getState());
+        eventProducer.sendStatusChangeEvent(event);
+
         return savedApplication;
     }
 
