@@ -1,9 +1,12 @@
 package com.tracker.analytics_service.controller;
 
+import com.tracker.analytics_service.config.SseConnectionManager;
 import com.tracker.analytics_service.model.DailyStateAggregate;
 import com.tracker.analytics_service.repository.DailyStateAggregateRepository;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.util.List;
 
 // '@RestController' opens up web endpoints that automatically return clean JSON data.
@@ -14,11 +17,13 @@ import java.util.List;
 public class AnalyticsController {
 
     private final DailyStateAggregateRepository repository;
+    private final SseConnectionManager sseManager;
 
     // Manual constructor injection to safely connect to our metrics repository
     // layer
-    public AnalyticsController(DailyStateAggregateRepository repository) {
+    public AnalyticsController(DailyStateAggregateRepository repository, SseConnectionManager sseManager) {
         this.repository = repository;
+        this.sseManager = sseManager;
     }
 
     /**
@@ -30,5 +35,14 @@ public class AnalyticsController {
         // Fetch all aggregated counting rows sitting inside MySQL
         List<DailyStateAggregate> metrics = repository.findAll();
         return ResponseEntity.ok(metrics);
+    }
+
+    /**
+     * Endpoint: Open a permanent stream channel to the browser
+     * URL: GET http://localhost:8081/api/analytics/stream
+     */
+    @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
+    public SseEmitter streamMetrics() {
+        return sseManager.createConnection();
     }
 }

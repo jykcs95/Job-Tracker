@@ -7,37 +7,39 @@ export default function AnalyticsChart() {
         { name: 'INTERVIEWING', count: 0 },
         { name: 'DONE', count: 0 }
     ]);
+    const [toast, setToast] = useState({ show: false, message: '' });
 
-    const ANALYTICS_API_URL = 'http://localhost:8081/api/analytics/daily';
-
-    const fetchMetrics = async () => {
-        try {
-        const response = await fetch(ANALYTICS_API_URL);
-        if (response.ok) {
-            const data = await response.json();
-            
-            // If the database returns rows, map them accurately by checking the exact JSON keys
-            if (data) {
-            const states = ['APPLIED', 'INTERVIEWING', 'DONE'];
-            const formatted = states.map((state) => {
-                const item = data.find((entry) => entry.state === state);
-                return {
-                name: state,
-                count: item?.totalCount ?? 0
-                };
-            });
-            setMetrics(formatted);
-            }
-        }
-        } catch (error) {
-        console.error("Failed to connect to Analytics Service:", error);
-        }
-    };
+    const INITIAL_API_URL = 'http://localhost:8081/api/analytics/daily';
+    const STREAM_API_URL = 'http://localhost:8081/api/analytics/stream';
 
     useEffect(() => {
-        fetchMetrics();
-        const interval = setInterval(fetchMetrics, 2000);
-        return () => clearInterval(interval);
+        // 1. Fetch initial values on page mount layout
+        fetch(INITIAL_API_URL)
+        .then(res => res.json())
+        .then(data => {
+            if (data && data.length > 0) {
+            setMetrics(data.map(item => ({ name: item.state, count: item.totalCount })));
+            }
+        })
+        .catch(err => console.error("Initial metrics fetch failed:", err));
+
+        // 2. OPEN NATIVE SSE STREAM EVENT LISTENER WIRE (No polling timers!)
+        const eventSource = new EventSource(STREAM_API_URL);
+
+        eventSource.addEventListener('telemetry-update', (event) => {
+        const freshData = JSON.parse(event.data);
+        console.log(">>> SSE Push Event Caught Live:", freshData);
+        
+        // Update our chart states instantly
+        setMetrics(freshData.map(item => ({ name: item.state, count: item.totalCount })));
+
+        // Trigger our beautiful live Toast Notification layout alert pop-up panel
+        setToast({ show: true, message: '⚡ SSE Push Event Synchronized!' });
+        setTimeout(() => setToast({ show: false, message: '' }), 3500);
+        });
+
+        // Clean up our streaming wire when the user closes the website
+        return () => eventSource.close();
     }, []);
 
     const getBarColor = (name) => {
@@ -48,13 +50,21 @@ export default function AnalyticsChart() {
     };
 
     return (
-        <div className="w-full bg-gray-800/40 border border-gray-800 p-5 rounded-xl mb-8">
+        <div className="w-full bg-gray-800/40 border border-gray-800 p-5 rounded-xl mb-8 relative overflow-hidden">
+        
+        {/* GLOWING POP-UP TOAST ALERT LAYER */}
+        {toast.show && (
+            <div className="absolute top-4 right-4 bg-emerald-500 text-gray-900 px-4 py-2 rounded-lg font-bold text-xs shadow-lg animate-bounce border border-emerald-400 flex items-center gap-2 z-50">
+            <span>{toast.message}</span>
+            </div>
+        )}
+
         <div className="mb-4">
             <h2 className="text-xl font-black text-white tracking-tight flex items-center gap-2">
             <span className="flex h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
             Real-Time Data Telemetry Engine
             </h2>
-            <p className="text-xs text-gray-500 mt-0.5">Asynchronous metrics aggregated via Apache Kafka streams</p>
+            <p className="text-xs text-gray-500 mt-0.5">Asynchronous metrics pushed instantly via Server-Sent Events (SSE)</p>
         </div>
 
         <div className="h-[220px] w-full relative">
@@ -77,3 +87,4 @@ export default function AnalyticsChart() {
         </div>
     );
 }
+

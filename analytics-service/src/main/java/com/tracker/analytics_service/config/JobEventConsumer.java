@@ -20,10 +20,12 @@ public class JobEventConsumer {
     private static final Logger log = LoggerFactory.getLogger(JobEventConsumer.class);
 
     private final DailyStateAggregateRepository repository;
+    private final SseConnectionManager sseManager;
 
     // Explicit constructor to hook up our analytics database tracking layer
-    public JobEventConsumer(DailyStateAggregateRepository repository) {
+    public JobEventConsumer(DailyStateAggregateRepository repository, SseConnectionManager sseManager) {
         this.repository = repository;
+        this.sseManager = sseManager;
     }
 
     /**
@@ -99,5 +101,8 @@ public class JobEventConsumer {
 
         log.info("Metrics calculation synchronized. State: {} | Today's Updated Total Count: {}",
                 state, aggregate.getTotalCount());
+
+        java.util.List<DailyStateAggregate> freshMetrics = repository.findAll();
+        sseManager.broadcastUpdate(freshMetrics);
     }
 }
