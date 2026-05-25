@@ -1,7 +1,9 @@
-package com.tracker.job_workflow_service;
+package com.tracker.job_workflow_service.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import com.tracker.job_workflow_service.model.JobApplication;
 
 // '@Repository' tells Spring Boot that this interface is a database component.
 // We extend 'JpaRepository<JobApplication, Long>' which tells Spring:

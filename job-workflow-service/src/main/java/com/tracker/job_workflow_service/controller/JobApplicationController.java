@@ -1,7 +1,13 @@
-package com.tracker.job_workflow_service;
+package com.tracker.job_workflow_service.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import com.tracker.job_workflow_service.model.ApplicationState;
+import com.tracker.job_workflow_service.dto.JobApplicationDTO;
+import com.tracker.job_workflow_service.model.JobApplication;
+import com.tracker.job_workflow_service.service.JobApplicationService;
+
 import java.util.List;
 
 // '@RestController' tells Spring Boot that this class defines network API endpoints 

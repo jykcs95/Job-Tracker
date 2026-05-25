@@ -1,4 +1,6 @@
-package com.tracker.job_workflow_service;
+package com.tracker.job_workflow_service.dto;
+
+import com.tracker.job_workflow_service.model.ApplicationState;
 
 import lombok.Data;
 

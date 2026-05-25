@@ -1,4 +1,4 @@
-package com.tracker.job_workflow_service;
+package com.tracker.job_workflow_service.model;
 
 public enum ApplicationState {
     APPLIED,

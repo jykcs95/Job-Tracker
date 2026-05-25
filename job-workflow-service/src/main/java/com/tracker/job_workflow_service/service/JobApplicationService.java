@@ -1,9 +1,16 @@
-package com.tracker.job_workflow_service;
+package com.tracker.job_workflow_service.service;
 
 import org.slf4j.Logger; // Added for structured logging
 import org.slf4j.LoggerFactory; // Added for initializing the logger instance
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+
+import com.tracker.job_workflow_service.config.JobEventProducer;
+import com.tracker.job_workflow_service.dto.JobStatusEvent;
+import com.tracker.job_workflow_service.model.ApplicationState;
+import com.tracker.job_workflow_service.model.JobApplication;
+import com.tracker.job_workflow_service.repository.JobApplicationRepository;
+
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -23,12 +30,18 @@ public class JobApplicationService {
     private final JobApplicationRepository repository;
     private final RedisTemplate<String, Object> redisTemplate;
 
-    // MANUAL CONSTRUCTOR: This explicitly initializes your fields
-    // and satisfies Java's initialization rules perfectly without relying on
-    // Lombok.
-    public JobApplicationService(JobApplicationRepository repository, RedisTemplate<String, Object> redisTemplate) {
+    // NEW CONNECTOR: Wire up our custom Kafka event broadcaster component
+    private final JobEventProducer eventProducer;
+
+    // Explicit constructor to initialize our database, cache, and message broker
+    // links safely
+    public JobApplicationService(
+            JobApplicationRepository repository,
+            RedisTemplate<String, Object> redisTemplate,
+            JobEventProducer eventProducer) {
         this.repository = repository;
         this.redisTemplate = redisTemplate;
+        this.eventProducer = eventProducer;
     }
 
     // Helper method to create a distinct cache key string for Redis
@@ -85,14 +98,27 @@ public class JobApplicationService {
         JobApplication application = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Job Application not found with ID: " + id));
 
-        // Step 2: Modify the status field to our new target state
-        application.setState(newState);
+        // STEP 2: Keep track of what state the job card used to be in before we change
+        // it
+        ApplicationState oldState = application.getState();
 
-        // Step 3: Save the edited record back down into MySQL
+        // STEP 3: Apply the new target state and save it permanently inside MySQL
+        application.setState(newState);
         JobApplication updatedApplication = repository.save(application);
 
-        // Step 4: Clear the outdated Redis cache key
+        // STEP 4: Clear the outdated Redis cache board key
         redisTemplate.delete(getCacheKey(userId));
+
+        // STEP 5: ASYNCHRONOUS KAFKA TRIGGER!
+        // Package the event details and broadcast them over the message bus topic.
+        // This notifies our background Analytics Engine instantly without freezing our
+        // UI thread.
+        JobStatusEvent event = new JobStatusEvent(
+                updatedApplication.getId(),
+                updatedApplication.getCompanyName(),
+                oldState,
+                newState);
+        eventProducer.sendStatusChangeEvent(event);
 
         return updatedApplication;
     }

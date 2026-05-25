@@ -1,4 +1,4 @@
-package com.tracker.job_workflow_service;
+package com.tracker.job_workflow_service.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
