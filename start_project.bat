@@ -5,7 +5,7 @@ echo ===================================================================
 
 :: 1. Navigate to infrastructure and wake up all your Docker containers
 cd /d "C:\Path\To\Your\Job Tracker\infrastructure"
-call docker-compose start
+call docker-compose up -d
 
 :: 2. Launch the main Spring Boot Workflow Write Service (Port 8080)
 echo Starting Spring Boot Workflow Service engine...
