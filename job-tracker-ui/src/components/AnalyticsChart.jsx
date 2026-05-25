@@ -22,7 +22,7 @@ export default function AnalyticsChart() {
 
         // Prefer rows for today's date if available, otherwise use latest available
         const today = new Date().toISOString().split('T')[0];
-        const todays = rawData.filter(d => d.logDate && d.logDate.startsWith(today));
+        const todays = rawData.filter(d => d.logDate?.startsWith(today));
         const rows = todays.length > 0 ? todays : rawData;
 
         // Aggregate counts by state to guard against multiple rows
@@ -78,7 +78,7 @@ export default function AnalyticsChart() {
     };
 
     const CustomTooltip = ({ active, payload }) => {
-        if (active && payload && payload.length) {
+        if (active && payload?.length) {
             const data = payload[0].payload;
             const labels = {
                 'APPLIED': '📨 Applications Sent',

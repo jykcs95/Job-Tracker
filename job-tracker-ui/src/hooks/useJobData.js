@@ -23,8 +23,8 @@ export function useJobData() {
 
         const formatNumber = (numStr) => {
         if (!numStr) return '';
-        const num = parseInt(numStr, 10);
-        return isNaN(num) ? '' : '$' + num.toLocaleString('en-US');
+        const num = Number.parseInt(numStr, 10);
+        return Number.isNaN(num) ? '' : '$' + num.toLocaleString('en-US');
         };
 
         if (parts.length > 1) {
@@ -43,8 +43,9 @@ export function useJobData() {
         } else {
             setTimeout(fetchKanbanBoard, 2000);
         }
-        } catch (error) {
-        setTimeout(fetchKanbanBoard, 2000);
+        }
+        catch (error){
+        console.error("Error fetching Kanban Board",error);
         }
     };
 
@@ -87,7 +88,7 @@ export function useJobData() {
 
     // 4. Delete Card Item
     const handleDeleteCard = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this job application?")) return;
+        if (!globalThis.confirm("Are you sure you want to delete this job application?")) return;
         try {
         const response = await fetch(`${API_BASE_URL}/${id}`, {
             method: 'DELETE',

@@ -23,7 +23,7 @@ public class SseConnectionManager {
 
         emitter.onCompletion(() -> this.emitters.remove(emitter));
         emitter.onTimeout(() -> this.emitters.remove(emitter));
-        emitter.onError((ex) -> this.emitters.remove(emitter));
+        emitter.onError(ex -> this.emitters.remove(emitter));
 
         log.info("📡 New active UI streaming channel connected. Active pools: {}", emitters.size());
         return emitter;
@@ -35,7 +35,7 @@ public class SseConnectionManager {
             try {
                 // Pushes the data payload natively over the open HTTP connection string
                 emitter.send(SseEmitter.event().name("telemetry-update").data(data));
-            } catch (IOException e) {
+            } catch (IOException _) {
                 this.emitters.remove(emitter);
             }
         }

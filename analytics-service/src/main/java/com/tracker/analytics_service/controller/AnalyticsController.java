@@ -11,7 +11,6 @@ import java.util.List;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import com.tracker.analytics_service.model.ApplicationState;
-import com.tracker.analytics_service.model.DailyStateAggregate;
 
 // '@RestController' opens up web endpoints that automatically return clean JSON data.
 // '@CrossOrigin("*")' prevents CORS block errors when our React frontend reaches out.
