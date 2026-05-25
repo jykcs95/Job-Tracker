@@ -77,6 +77,24 @@ export default function AnalyticsChart() {
         return '#9ca3af';                              
     };
 
+    const CustomTooltip = ({ active, payload }) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            const labels = {
+                'APPLIED': '📨 Applications Sent',
+                'INTERVIEWING': '🎤 In Interviews',
+                'DONE': '✅ Completed'
+            };
+            return (
+                <div className="bg-gray-900 border border-gray-700 px-3 py-2 rounded-lg">
+                    <p className="text-white font-semibold text-sm">{labels[data.name] || data.name}</p>
+                    <p className="text-gray-300 text-sm font-bold">{data.count} {data.count === 1 ? 'job' : 'jobs'}</p>
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <div className="w-full bg-gray-800/40 border border-gray-800 p-5 rounded-xl mb-8 relative overflow-hidden">
         
@@ -100,7 +118,7 @@ export default function AnalyticsChart() {
                 <XAxis dataKey="name" stroke="#9ca3af" fontSize={11} tickLine={false} />
                 <YAxis stroke="#9ca3af" fontSize={11} tickLine={false} allowDecimals={false} />
                 <Tooltip 
-                contentStyle={{ backgroundColor: '#1f2937', borderColor: '#374151', borderRadius: '8px', color: '#fff', fontSize: '12px' }}
+                content={<CustomTooltip />}
                 cursor={{ fill: 'rgba(255,255,255,0.03)' }}
                 />
                 <Bar dataKey="count" radius={5} maxBarSize={60} />
