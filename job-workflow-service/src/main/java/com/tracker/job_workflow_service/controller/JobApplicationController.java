@@ -31,7 +31,7 @@ public class JobApplicationController {
      */
     @PostMapping
     public ResponseEntity<JobApplication> createJob(
-            @RequestBody JobApplicationDTO dto, // CHANGED: Now receives our clean POJO/DTO object
+            @RequestBody JobApplicationDTO dto,
             @RequestHeader("X-User-Id") String userId) {
 
         // MANUAL TRANSLATION: Create an instance of our database entity
