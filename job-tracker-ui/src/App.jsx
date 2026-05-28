@@ -11,6 +11,7 @@ function App() {
     formData,
     setFormData,
     formatSalaryString,
+    handleSalaryBlur,
     handleCreateJob,
     handleMoveCard,
     handleDeleteCard
@@ -48,6 +49,7 @@ function App() {
             formData={formData} 
             setFormData={setFormData} 
             formatSalaryString={formatSalaryString} 
+            handleSalaryBlur={handleSalaryBlur}
             onSubmit={handleCreateJob} 
           />
 

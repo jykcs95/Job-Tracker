@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react';
 // It acts as an isolated data package that any component can tap into.
 export function useJobData() {
     const [jobs, setJobs] = useState([]);
+    const today = new Date().toISOString().slice(0, 10);
     const [formData, setFormData] = useState({
         companyName: '',
         roleTitle: '',
         state: 'APPLIED',
         salaryRange: '',
+        appliedDate: today,
         jobUrl: ''
     });
 
@@ -31,6 +33,13 @@ export function useJobData() {
         return `${formatNumber(parts[0])} - ${formatNumber(parts[1])}`.trim();
         }
         return formatNumber(parts[0]);
+    };
+
+    const handleSalaryBlur = () => {
+        setFormData((currentFormData) => ({
+            ...currentFormData,
+            salaryRange: formatSalaryString(currentFormData.salaryRange)
+        }));
     };
 
     // 1. Fetch Board (With Auto-Retry)
@@ -57,13 +66,17 @@ export function useJobData() {
     const handleCreateJob = async (e) => {
         e.preventDefault();
         try {
+        const requestData = {
+            ...formData,
+            salaryRange: formatSalaryString(formData.salaryRange)
+        };
         const response = await fetch(API_BASE_URL, {
             method: 'POST',
             headers: { ...USER_HEADER, 'Content-Type': 'application/json' },
-            body: JSON.stringify(formData)
+            body: JSON.stringify(requestData)
         });
         if (response.ok) {
-            setFormData({ companyName: '', roleTitle: '', state: 'APPLIED', salaryRange: '', jobUrl: '' });
+            setFormData({ companyName: '', roleTitle: '', state: 'APPLIED', salaryRange: '', appliedDate: today, jobUrl: '' });
             fetchKanbanBoard();
         }
         } catch (error) {
@@ -108,6 +121,7 @@ export function useJobData() {
         formData,
         setFormData,
         formatSalaryString,
+        handleSalaryBlur,
         handleCreateJob,
         handleMoveCard,
         handleDeleteCard

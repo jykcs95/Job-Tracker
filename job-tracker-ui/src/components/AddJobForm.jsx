@@ -1,7 +1,7 @@
 import React from 'react';
 
 // We pass down our state data and form triggers from our custom hook as properties (props)
-export default function AddJobForm({ formData, setFormData, formatSalaryString, onSubmit }) {
+export default function AddJobForm({ formData, setFormData, formatSalaryString, handleSalaryBlur, onSubmit }) {
     return (
         <section className="bg-gray-800 p-5 rounded-xl border border-gray-700 h-fit">
         <h2 className="text-2xl font-bold text-white mb-6">Add Application</h2>
@@ -33,9 +33,21 @@ export default function AddJobForm({ formData, setFormData, formatSalaryString, 
                     type="text"
                     value={formData.salaryRange}
                     onChange={(e) => setFormData({...formData, salaryRange: e.target.value})}
+                    onBlur={handleSalaryBlur}
                     className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm"
                     placeholder="e.g., 140000-170000"
                 />Salary Range
+            </label>
+            </div>
+            <div>
+            <label className="block text-xs font-semibold text-gray-400 uppercase mb-1">
+                <input
+                    type="date"
+                    required
+                    value={formData.appliedDate}
+                    onChange={(e) => setFormData({...formData, appliedDate: e.target.value})}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white focus:outline-none focus:border-emerald-500 text-sm"
+                />Applied Date
             </label>
             </div>
             <div>
