@@ -12,8 +12,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import com.tracker.analytics_service.model.ApplicationState;
 
-// '@RestController' opens up web endpoints that automatically return clean JSON data.
-// '@CrossOrigin("*")' prevents CORS block errors when our React frontend reaches out.
 @RestController
 @RequestMapping("/api/analytics")
 @CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = { RequestMethod.GET })
@@ -22,21 +20,13 @@ public class AnalyticsController {
     private final DailyStateAggregateRepository repository;
     private final SseConnectionManager sseManager;
 
-    // Manual constructor injection to safely connect to our metrics repository
-    // layer
     public AnalyticsController(DailyStateAggregateRepository repository, SseConnectionManager sseManager) {
         this.repository = repository;
         this.sseManager = sseManager;
     }
 
-    /**
-     * Endpoint: Fetch all daily aggregate counts for the chart
-     * URL: GET http://localhost:8081/api/analytics/daily
-     */
     @GetMapping("/daily")
     public ResponseEntity<List<DailyStateAggregate>> getDailyMetrics() {
-        // Fetch aggregated rows for today only and ensure we return the three expected
-        // states
         LocalDate today = LocalDate.now();
         List<DailyStateAggregate> rows = repository.findByLogDate(today);
 
@@ -55,10 +45,6 @@ public class AnalyticsController {
         return ResponseEntity.ok(result);
     }
 
-    /**
-     * Endpoint: Open a permanent stream channel to the browser
-     * URL: GET http://localhost:8081/api/analytics/stream
-     */
     @GetMapping(value = "/stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     public SseEmitter streamMetrics() {
         return sseManager.createConnection();

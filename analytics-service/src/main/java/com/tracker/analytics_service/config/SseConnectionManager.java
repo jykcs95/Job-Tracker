@@ -13,11 +13,9 @@ public class SseConnectionManager {
 
     private static final Logger log = LoggerFactory.getLogger(SseConnectionManager.class);
 
-    // CopyOnWriteArrayList provides thread-safe array modifications for streaming
     private final List<SseEmitter> emitters = new CopyOnWriteArrayList<>();
 
     public SseEmitter createConnection() {
-        // Set timeout to 30 minutes (1800000ms) to keep the streaming wire alive
         SseEmitter emitter = new SseEmitter(1800000L);
         this.emitters.add(emitter);
 
@@ -33,7 +31,6 @@ public class SseConnectionManager {
         log.info("⚡ Broadcasting live metric event payload to {} connected browser windows...", emitters.size());
         for (SseEmitter emitter : emitters) {
             try {
-                // Pushes the data payload natively over the open HTTP connection string
                 emitter.send(SseEmitter.event().name("telemetry-update").data(data));
             } catch (IOException _) {
                 this.emitters.remove(emitter);
